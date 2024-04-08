@@ -1,0 +1,22 @@
+{
+  "name": "authentication",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Authentication demo using JWT and CSRF protection",
+  "keywords": [
+    "auth",
+    "jwt",
+    "csrf"
+  ],
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "author": "contact@oclock.io",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5",
+    "sequelize": "^6.37.2"
+  }
+}
