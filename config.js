@@ -1,7 +1,7 @@
 const server = {
   port: process.env.PORT || 3000,
   host: process.env.HOST || "localhost"
-}
+};
 
 const database = {
   dialect: "postgres",
@@ -19,9 +19,10 @@ const auth = {
   refreshToken: {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || 30 * 24 * 60 * 60 * 1000 // ~ 1 month
   }
-}
+};
 
 export default {
+  auth,
+  database,
   server,
-  auth
-}
+};

@@ -4,13 +4,18 @@ import config from "./config.js";
 // Create Express app
 const app = express();
 
-// Configure public routes
-app.get("/public", getPublicStuff);
-app.get("/signup", registerUser);
-app.get("/signin", loginUser);
+// Configure client pages
+app.get("/", (req, res) => {
+  res.sendFile(`${import.meta.dirname}/index.html`);
+});
+
+// Configure public API routes
+app.get("/api/public", getPublicStuff);
+app.get("/api/signup", registerUser);
+app.get("/api/signin", loginUser);
 
 // Configure protected routes
-app.get("/private", getPrivateStuff);
+app.get("/api/private", getPrivateStuff);
 
 
 // Start HTTP server
@@ -23,9 +28,17 @@ app.listen(port, host, () => {
 // ==================
 
 function getPublicStuff(req, res) {
-  res.json({ message: "This is some public resources." });
+  res.json({ message: "This is some public resource." });
 }
 
 function getPrivateStuff(req, res) {
-  res.json({ message: "This is some private resources" });
+  res.json({ message: "This is some private resource" });
+}
+
+function registerUser(req, res) {
+  res.send("OK");
+}
+
+function loginUser(req, res) {
+  res.send("OK");
 }
