@@ -4,7 +4,8 @@ const server = {
 };
 
 const database = {
-  dialect: "postgres",
+  dialect: process.env.DATABASE_DIALECT || "sqlite",
+  storage: process.env.DATABASE_STORAGE || "database.sqlite"
 };
 
 const auth = {
