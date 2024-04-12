@@ -6,9 +6,49 @@
   <title>Authentication Test Page</title>
   <style>
     body { font-family: sans-serif; }
+    label { display: block; }
   </style>
 </head>
 <body>
   <h1>Authentication Test Page</h1>
+
+  <section aria-labelledby="signup">
+    <h2 id="signup">Create an account</h2>
+    <form action="/signup" method="POST">
+      <label for="signup-pseudo">
+        Pseudo
+        <input type="text" name="pseudo" id="signup-pseudo">
+      </label>
+      <label for="signup-email">
+        Email
+        <input type="email" name="email" id="signup-email">
+      </label>
+      <label for="signup-password">
+        Password
+        <input type="password" name="password" id="signup-password">
+      </label>
+      <label for="signup-confirm">
+        Confirm Password
+        <input type="password" name="confirm" id="signup-confirm">
+      </label>
+      <button>Create an account</button>
+    </form>
+  </section>
+
+  <section aria-labelledby="signin">
+    <h2 id="signin">Log in</h2>
+    <form action="/signin" method="POST">
+      <label for="signin-email">
+        Email
+        <input type="email" name="email" id="signin-email">
+      </label>
+      <label for="signin-password">
+        Password
+        <input type="password" name="password" id="signin-password">
+      </label>
+      <button>Log in</button>
+    </form>
+  </section>
+
 </body>
 </html>

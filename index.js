@@ -1,24 +1,27 @@
 import express from "express";
 import config from "./config.js";
+import { User } from "./models/index.js";
 
-// Create Express app
+// Express app
 const app = express();
 
-// Configure client pages
-app.get("/", (req, res) => {
-  res.sendFile(`${import.meta.dirname}/index.html`);
-});
+// Client pages
+app.get("/", sendHomePage);
 
-// Configure public API routes
-app.get("/api/public", getPublicStuff);
-app.get("/api/signup", registerUser);
-app.get("/api/signin", loginUser);
+// Body parsers
+const formUrlEncodedParser = express.urlencoded({ extended: true });
 
-// Configure protected routes
-app.get("/api/private", getPrivateStuff);
+// Authentication routes
+app.post("/signup", formUrlEncodedParser, registerUser);
+app.post("/signin", formUrlEncodedParser, loginUser);
 
 
-// Start HTTP server
+// Resources
+app.get("/public-stuff", getPublicStuff);
+app.get("/private-stuff", getPrivateStuff);
+
+
+// HTTP server
 const { port, host } = config.server; 
 app.listen(port, host, () => {
   console.log(`🚀 Server listening on http://${host}:${port}`);
@@ -26,6 +29,10 @@ app.listen(port, host, () => {
 
 
 // ==================
+
+function sendHomePage(req, res) {
+  res.sendFile(`${import.meta.dirname}/index.html`);
+}
 
 function getPublicStuff(req, res) {
   res.json({ message: "This is some public resource." });
@@ -35,8 +42,17 @@ function getPrivateStuff(req, res) {
   res.json({ message: "This is some private resource" });
 }
 
-function registerUser(req, res) {
-  res.send("OK");
+async function registerUser(req, res) {
+  const { pseudo, email, password } = req.body;
+  // TODO: body validation
+
+  await User.create({
+    pseudo,
+    email,
+    password // TODO: password hashing
+  });
+
+  res.redirect("/");
 }
 
 function loginUser(req, res) {

@@ -9,7 +9,10 @@ export class AccessToken extends Model {}
 
 User.init({
   pseudo: DataTypes.STRING,
-  email: DataTypes.STRING,
+  email: { type: DataTypes.STRING, unique: true },
   password: DataTypes.STRING
 }, { sequelize });
 
+
+// Sync tables
+await sequelize.sync();
