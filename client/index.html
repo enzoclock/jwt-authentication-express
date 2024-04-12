@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication Test Page</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.classless.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>Authentication Test Page</h1>
+  </header>
+
+  <main>
+    <section aria-labelledby="signup">
+      <h2 id="signup">Create an account</h2>
+      <form action="/signup" method="POST">
+        <label for="signup-username">
+          User name
+          <input type="text" name="username" id="signup-username">
+        </label>
+        <label for="signup-email">
+          Email
+          <input type="email" name="email" id="signup-email">
+        </label>
+        <label for="signup-password">
+          Password
+          <input type="password" name="password" id="signup-password">
+        </label>
+        <label for="signup-confirm">
+          Confirm Password
+          <input type="password" name="confirm" id="signup-confirm">
+        </label>
+        <button>Create an account</button>
+      </form>
+    </section>
+  
+    <section aria-labelledby="signin">
+      <h2 id="signin">Log in</h2>
+      <form action="/signin" method="POST">
+        <label for="signin-email">
+          Email
+          <input type="email" name="email" id="signin-email">
+        </label>
+        <label for="signin-password">
+          Password
+          <input type="password" name="password" id="signin-password">
+        </label>
+        <button>Log in</button>
+      </form>
+    </section>
+  </main>
+
+  
+
+</body>
+</html>

@@ -1,19 +1,20 @@
 import express from "express";
 import config from "./config.js";
-import { User } from "./models/index.js";
+import * as authController from "./controllers/auth.js";
 
 // Express app
 const app = express();
 
-// Client pages
-app.get("/", sendHomePage);
+// Client pages (for testing purposes)
+app.use("/", express.static("client"));
 
 // Body parsers
-const formUrlEncodedParser = express.urlencoded({ extended: true });
+app.use(express.urlencoded({ extended: true })); // application/x-www-form-urlencoded
+app.use(express.json()); // application/json
 
 // Authentication routes
-app.post("/signup", formUrlEncodedParser, registerUser);
-app.post("/signin", formUrlEncodedParser, loginUser);
+app.post("/signup", authController.registerUser);
+app.post("/signin", authController.loginUser);
 
 
 // Resources
@@ -30,10 +31,6 @@ app.listen(port, host, () => {
 
 // ==================
 
-function sendHomePage(req, res) {
-  res.sendFile(`${import.meta.dirname}/index.html`);
-}
-
 function getPublicStuff(req, res) {
   res.json({ message: "This is some public resource." });
 }
@@ -42,19 +39,3 @@ function getPrivateStuff(req, res) {
   res.json({ message: "This is some private resource" });
 }
 
-async function registerUser(req, res) {
-  const { pseudo, email, password } = req.body;
-  // TODO: body validation
-
-  await User.create({
-    pseudo,
-    email,
-    password // TODO: password hashing
-  });
-
-  res.redirect("/");
-}
-
-function loginUser(req, res) {
-  res.send("OK");
-}
