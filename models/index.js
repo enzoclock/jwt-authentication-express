@@ -15,7 +15,8 @@ User.init({
 
 RefreshToken.init({
   token: { type: DataTypes.STRING },
-  expiresIn: { type: DataTypes.DATE }
+  expiresAt: { type: DataTypes.DATE },
+  userId: { type: DataTypes.INTEGER }
 }, { sequelize });
 
 User.hasMany(RefreshToken, { foreignKey: "userId" });
