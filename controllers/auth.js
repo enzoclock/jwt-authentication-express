@@ -75,8 +75,8 @@ export async function refreshAccessTokens(req, res) {
 
   await RefreshToken.create({
     userId: refreshToken.user.id,
-    token: unsaltedHash(refreshToken.token),
-    expiresAt: refreshToken.expiresAt
+    token: unsaltedHash(newRefreshToken.token),
+    expiresAt: newRefreshToken.expiresAt
   });
   
   // Send reply
