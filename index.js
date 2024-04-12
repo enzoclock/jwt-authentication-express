@@ -15,6 +15,7 @@ app.use(express.json()); // application/json
 // Authentication routes
 app.post("/signup", authController.registerUser);
 app.post("/signin", authController.loginUser);
+app.post("/refresh", authController.refreshAccessTokens);
 
 
 // Resources

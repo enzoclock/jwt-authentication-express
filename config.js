@@ -21,7 +21,8 @@ const auth = {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN_MS || 30 * 24 * 60 * 60 * 1000 // ~ 1 month
   },
   crypto: {
-    saltRounds: process.env.SALT_ROUNDS || 10
+    saltRounds: process.env.SALT_ROUNDS || 10,
+    unsaltedHashAlgorithm: process.env.FAST_HASH_ALGORITHM || "sha256"
   }
 };
 

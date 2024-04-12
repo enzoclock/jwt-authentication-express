@@ -7,6 +7,7 @@
   <title>Authentication Test Page</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.classless.css">
   <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/main.js" defer></script>
 </head>
 
 <body>
@@ -51,10 +52,25 @@
         </label>
         <button>Log in</button>
       </form>
+
+      <form action="/refresh" method="POST">
+        <h2>Current tokens</h2>
+        <label for="access-token">
+          Access Token (JWT)
+          <span>Valid until: <time></time></span>
+          <input id="access-token" type="text" disabled>
+        </label>
+  
+        <label for="refresh-token">
+          Refresh Token (Base64)
+          <span>Valid until: <time></time></span>
+          <input type="refresh-token" type="text" name="token">
+        </label>
+  
+        <button disabled>Refresh Token</button>
+      </form>
     </section>
   </main>
-
-  
 
 </body>
 </html>

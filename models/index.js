@@ -19,5 +19,5 @@ RefreshToken.init({
   userId: { type: DataTypes.INTEGER }
 }, { sequelize });
 
-User.hasMany(RefreshToken, { foreignKey: "userId" });
-RefreshToken.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(RefreshToken, { foreignKey: "userId", as: "refreshTokens" });
+RefreshToken.belongsTo(User, { foreignKey: "userId", as: "user" });
