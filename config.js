@@ -1,6 +1,7 @@
 const server = {
   host: process.env.HOST || "localhost",
-  port: process.env.PORT || 3000
+  port: process.env.PORT || 3000,
+  secure: process.env.SECURE || false
 };
 
 const database = {
@@ -23,7 +24,8 @@ const auth = {
   crypto: {
     saltRounds: process.env.SALT_ROUNDS || 10,
     unsaltedHashAlgorithm: process.env.FAST_HASH_ALGORITHM || "sha256"
-  }
+  },
+  preventCSRF: process.env.PREVENT_CSRF || true
 };
 
 export default {

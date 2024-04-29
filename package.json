@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "db:reset": "node ./models/reset.js"
   },
   "author": "contact@oclock.io",
   "license": "ISC",
@@ -19,7 +20,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "sequelize": "^6.37.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "zod": "^3.23.4"
   },
   "devDependencies": {
     "eslint": "^9.0.0"

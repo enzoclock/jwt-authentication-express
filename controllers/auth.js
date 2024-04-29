@@ -1,30 +1,47 @@
+import { z } from "zod";
+import config from "../config.js";
 import { compare, hash, unsaltedHash } from "../lib/crypto.js";
 import { generateAuthenticationTokens } from "../lib/tokens.js";
 import { User, RefreshToken } from "../models/index.js";
 
-export async function registerUser(req, res) {
-  const { username, email, password } = req.body;
-  // TODO: body validation
+// ============================================================
+// ====================== USER SIGNUP =========================
+// ============================================================
 
+export async function registerUser(req, res) {
+  // Body validation
+  const { data, error } = await buildSignupBodySchema().safeParseAsync(req.body);
+  if (error) { return res.status(400).json({ status: 400, message: error.message }); }
+
+  // Create a new user
+  const { username, email, password } = data;
   await User.create({
     username,
     email,
     password: await hash(password)
   });
 
+  // Redirect user
   res.redirect("/");
 }
 
-export async function loginUser(req, res) {
-  const { email, password } = req.body;
-  // TODO: body validation
+// ============================================================
+// ====================== USER SIGNIN =========================
+// ============================================================
 
+export async function loginUser(req, res) {
+  // Body validation
+  const { data, error } = await buildSigninBodySchema().safeParseAsync(req.body);
+  if (error) { return res.status(400).json({ status: 400, message: error.message }); }
+
+  const { email, password } = data;
+  
   // Validate user exists and provided password matches
   const user = await User.findOne({ where: { email }});
-  if (! user) { return res.status(400).json({ status: 401, message: "Bad credentials" }); }
+  if (! user) { return res.status(401).json({ status: 401, message: "Bad credentials" }); }
 
   const isMatching = await compare(password, user.password);
-  if (! isMatching) { return res.status(400).json({ status: 401, message: "Bad credentials" }); }
+  if (! isMatching) { return res.status(401).json({ status: 401, message: "Bad credentials" }); }
 
   // Create authentication tokens
   const { accessToken, refreshToken } = generateAuthenticationTokens(user);
@@ -33,58 +50,105 @@ export async function loginUser(req, res) {
   await RefreshToken.destroy({
     where: { userId: user.id }
   });
-
   await RefreshToken.create({
     userId: user.id,
     token: unsaltedHash(refreshToken.token), // https://security.stackexchange.com/questions/271157/where-to-store-jwt-refresh-tokens
     expiresAt: refreshToken.expiresAt
   });
 
-  // Send reply
-  res.json({
-    accessToken: accessToken.token,
-    accessTokenType: accessToken.type,
-    accessTokenExpiresAt: accessToken.expiresAt,
-    refreshToken: refreshToken.token,
-    refreshTokenExpiresAt: refreshToken.expiresAt
-  });
+  // Client reponse
+  sendTokensResponse(res, { accessToken, refreshToken });
 }
 
-export async function refreshAccessTokens(req, res) {
-  const { token } = req.body;
-  // TODO: validate body
+// ============================================================
+// ==================== REFRESH TOKEN =========================
+// ============================================================
 
-  const refreshToken = await RefreshToken.findOne({
+export async function refreshAccessTokens(req, res) {
+  // Body validation
+  const { data: { token }, error } = await buildRefreshTokenSchema().safeParseAsync(req.body);
+  if (error) { return res.status(400).json({ status: 400, message: error.message }); }
+
+  // Find existing token and associated user
+  const existingRefreshToken = await RefreshToken.findOne({
     where: { token: unsaltedHash(token) },
     include: { association: "user" }
   });
-  if (! refreshToken) { return res.status(401).json({ status: 401, message: "Invalid refresh token provided"}); }
+  if (! existingRefreshToken) { return res.status(401).json({ status: 401, message: "Invalid refresh token provided"}); }
 
   // Check token validity
-  const isProvidedTokenStillValid = new Date().valueOf() < refreshToken.expiresAt.valueOf();
+  const isProvidedTokenStillValid = new Date().valueOf() < existingRefreshToken.expiresAt.valueOf();
   if (! isProvidedTokenStillValid) {
-    await refreshToken.destroy(); // Clean up invalid tokens
+    await existingRefreshToken.destroy(); // Clean up invalid tokens
     return res.status(401).json({ status: 401, message: "Invalid refresh token provided"});
   }
 
   // Generate new tokens
-  const { accessToken, refreshToken: newRefreshToken } = generateAuthenticationTokens(refreshToken.user);
+  const { accessToken, refreshToken } = generateAuthenticationTokens(existingRefreshToken.user);
 
   // Delete old token, then save the new one
-  await refreshToken.destroy();
-
+  await existingRefreshToken.destroy();
   await RefreshToken.create({
-    userId: refreshToken.user.id,
-    token: unsaltedHash(newRefreshToken.token),
-    expiresAt: newRefreshToken.expiresAt
+    userId: existingRefreshToken.user.id,
+    token: unsaltedHash(refreshToken.token),
+    expiresAt: refreshToken.expiresAt
   });
-  
-  // Send reply
+
+  // Client reponse
+  sendTokensResponse(res, { accessToken, refreshToken });
+}
+
+// ============================================================
+// ====================== BODY SCHEMA =========================
+// ============================================================
+
+function buildSignupBodySchema() {
+  return z.object({
+    username: z.string().min(1),
+    email: z.string().min(1).email(),
+    password: z.string().min(8)
+  });
+}
+
+function buildSigninBodySchema() {
+  return z.object({
+    email: z.string().email(),
+    password: z.string()
+  });
+}
+
+function buildRefreshTokenSchema() {
+  return z.object({
+    token: z.string()
+  });
+}
+
+// ============================================================
+// =================== RESPONSE HANDLING ======================
+// ============================================================
+
+function sendTokensResponse(res, { accessToken, refreshToken }) {
+  // Set tokens in client cookies (to prevent XSS)
+  res.cookie("accessToken", accessToken.token, {
+    maxAge: accessToken.expiresInMS,
+    httpOnly: true, // Client code cannot access cookie
+    secure: config.server.secure // Only send cookie via HTTPS
+  });
+
+  res.cookie("refreshToken", refreshToken.token, {
+    maxAge: refreshToken.expiresInMS,
+    httpOnly: true,
+    secure: config.server.secure,
+    path: "/refresh" // Client will only send the "refreshToken" cookie through the /refresh route
+  });
+
+  // Send reply (to ease client handling)
   res.json({
     accessToken: accessToken.token,
     accessTokenType: accessToken.type,
     accessTokenExpiresAt: accessToken.expiresAt,
-    refreshToken: newRefreshToken.token,
-    refreshTokenExpiresAt: newRefreshToken.expiresAt
+
+    refreshToken: refreshToken.token,
+    refreshTokenExpiresAt: refreshToken.expiresAt
   });
 }
