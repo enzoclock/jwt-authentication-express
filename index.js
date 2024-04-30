@@ -40,7 +40,8 @@ app.listen(port, host, () => {
 // ==================================================
 
 function isAuthenticated(req, res, next) {
-  const accessToken = req.cookies?.accessToken;
+  // Get access token from either cookies (browsers) or Authorization headers (any service)
+  const accessToken = req.cookies?.accessToken || req.headers?.["Authorization"]?.split("Bearer ")[1];
   if (! accessToken) { return res.status(401).json({ status: 401, message: "No access token provided in request headers" }); }
 
   const decodedToken = verifyJwtToken(accessToken);

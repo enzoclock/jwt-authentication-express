@@ -13,13 +13,13 @@ export async function signupUser(req, res) {
   const { data, error } = await buildSignupBodySchema().safeParseAsync(req.body);
   if (error) { return res.status(400).json({ status: 400, message: error.message }); }
 
-  // Create a new user
   const { username, email, password } = data;
-
+  
   // Check if email is always in use
   const nbOfUsersWithSameEmail = await User.count({ where: { email }});
   if (nbOfUsersWithSameEmail !== 0) { return res.status(409).json({ status: 409, message: "Provided email already in use" }); }
-
+  
+  // Create a new user
   await User.create({
     username,
     email,
@@ -110,10 +110,11 @@ export async function refreshAccessToken(req, res) {
 // ===================== LOGOUT USER ==========================
 // ============================================================
 
-export async function logout(req, res) {
-  res.cookie("accessToken", Math.random().toString());
-  res.cookie("refreshToken", Math.random().toString());
-  res.status(204).end();
+export async function logout(_, res) {
+  const randomStringToUnsetCookieValueOnClient = Math.random().toString();
+  res.cookie("accessToken", randomStringToUnsetCookieValueOnClient);
+  res.cookie("refreshToken", randomStringToUnsetCookieValueOnClient);
+  res.status(204).json({ status: 204, message: "Successfully logged out"});
 }
 
 // ============================================================
