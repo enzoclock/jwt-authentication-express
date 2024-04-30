@@ -15,61 +15,108 @@
     <h1>Authentication Test Page</h1>
   </header>
 
-  <main>
-    <section aria-labelledby="signup">
-      <h2 id="signup">Create an account</h2>
-      <form action="/signup" method="POST">
-        <label for="signup-username">
-          User name
-          <input type="text" name="username" id="signup-username" value="DarkEnzo">
-        </label>
-        <label for="signup-email">
-          Email
-          <input type="email" name="email" id="signup-email" value="enzo@oclock.io">
-        </label>
-        <label for="signup-password">
-          Password
-          <input type="password" name="password" id="signup-password" value="toto42oclock">
-        </label>
-        <label for="signup-confirm">
-          Confirm Password
-          <input type="password" name="confirm" id="signup-confirm" value="toto42oclock">
-        </label>
-        <button>Create an account</button>
-      </form>
-    </section>
-  
-    <section aria-labelledby="signin">
-      <h2 id="signin">Log in</h2>
-      <form action="/signin" method="POST">
-        <label for="signin-email">
-          Email
-          <input type="email" name="email" id="signin-email" value="enzo@oclock.io">
-        </label>
-        <label for="signin-password">
-          Password
-          <input type="password" name="password" id="signin-password" value="toto42oclock">
-        </label>
-        <button>Log in</button>
-      </form>
+  <main class="container">
 
-      <form action="/refresh" method="POST">
-        <h2>Current tokens</h2>
-        <label for="access-token">
-          Access Token (JWT)
-          <span>Valid until: <time></time></span>
-          <input id="access-token" type="text" disabled>
-        </label>
+    <div>
+      <section aria-labelledby="signup">
+        <h2 id="signup">Create an account</h2>
+        <form action="/signup" method="POST">
+          <label for="signup-username">
+            User name
+            <input type="text" name="username" id="signup-username" value="DarkEnzo">
+          </label>
+          <label for="signup-email">
+            Email
+            <input type="email" name="email" id="signup-email" value="enzo@oclock.io">
+          </label>
+          <label for="signup-password">
+            Password
+            <input type="password" name="password" id="signup-password" value="toto42oclock">
+          </label>
+          <label for="signup-confirm">
+            Confirm Password
+            <input type="password" name="confirm" id="signup-confirm" value="toto42oclock">
+          </label>
+          <button>Create an account</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="unauthenticated">
+        <h2 id="unauthenticated">
+          Unauthenticated requests
+        </h2>
   
-        <label for="refresh-token">
-          Refresh Token (Base64)
-          <span>Valid until: <time></time></span>
-          <input type="refresh-token" type="text" name="token">
-        </label>
+        <div class="container">
+          <ul>
+            <li><button id="get-unauthenticated-public-stuff">GET /public-stuff</button></li>
+            <li><button id="get-unauthenticated-private-stuff">GET /private-stuff</button></li>
+          </ul>
+          <pre><code id="unauthenticated-response"></code></pre>
+        </div>
+      </section>
+      
+      <section aria-labelledby="authenticated">
+        <h2 id="authenticated">
+          Authenticated requests
+        </h2>
   
-        <button disabled>Refresh Token</button>
-      </form>
-    </section>
+        <div class="container">
+          <ul>
+            <li><button id="get-authenticated-public-stuff">GET /public-stuff</button></li>
+            <li><button id="get-authenticated-private-stuff">GET /private-stuff</button></li>
+          </ul>
+          <pre><code id="authenticated-response"></code></pre>
+        </div>
+      </section>
+    </div>
+    
+    <div>
+      <section aria-labelledby="login">
+        <h2 id="login">Log in</h2>
+        <form action="/login" method="POST">
+          <label for="login-email">
+            Email
+            <input type="email" name="email" id="login-email" value="enzo@oclock.io">
+          </label>
+          <label for="login-password">
+            Password
+            <input type="password" name="password" id="login-password" value="toto42oclock">
+          </label>
+          <button>Log in</button>
+        </form>
+      </section>
+    
+      <section aria-labelledby="refresh">
+        <h2 id="refresh">Current tokens</h2>
+  
+        <form action="/refresh" method="POST">
+          <label for="access-token">
+            Access Token (JWT)
+            <span>Stored in cookies - Valid until: <time></time></span>
+            <input id="access-token" type="text" disabled>
+          </label>
+    
+          <label for="refresh-token">
+            Refresh Token (Base64)
+            <span>Stored in cookies - Valid until: <time></time></span>
+            <input type="refresh-token" type="text" name="token">
+          </label>
+  
+          <label for="csrf-token">
+            CSRF Token (Base64)
+            <span>Stored in localStorage</span>
+            <input type="csrf-token" type="text" disabled>
+          </label>
+    
+          <button disabled>Refresh Token</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="logout">
+        <h2 id="logout">Log out</h2>
+        <button>Log out</button>
+      </section>
+    </div>
   </main>
 
 </body>

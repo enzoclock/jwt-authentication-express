@@ -31,7 +31,7 @@ export async function registerUser(req, res) {
 
 export async function loginUser(req, res) {
   // Body validation
-  const { data, error } = await buildSigninBodySchema().safeParseAsync(req.body);
+  const { data, error } = await buildLoginBodySchema().safeParseAsync(req.body);
   if (error) { return res.status(400).json({ status: 400, message: error.message }); }
 
   const { email, password } = data;
@@ -44,7 +44,7 @@ export async function loginUser(req, res) {
   if (! isMatching) { return res.status(401).json({ status: 401, message: "Bad credentials" }); }
 
   // Create authentication tokens
-  const { accessToken, refreshToken } = generateAuthenticationTokens(user);
+  const { accessToken, refreshToken, csrfToken } = generateAuthenticationTokens(user);
 
   // Invalidate all user existing Refresh Tokens, then save the new one
   await RefreshToken.destroy({
@@ -57,7 +57,7 @@ export async function loginUser(req, res) {
   });
 
   // Client reponse
-  sendTokensResponse(res, { accessToken, refreshToken });
+  sendTokensResponse(res, { accessToken, refreshToken, csrfToken });
 }
 
 // ============================================================
@@ -84,7 +84,7 @@ export async function refreshAccessTokens(req, res) {
   }
 
   // Generate new tokens
-  const { accessToken, refreshToken } = generateAuthenticationTokens(existingRefreshToken.user);
+  const { accessToken, refreshToken, csrfToken } = generateAuthenticationTokens(existingRefreshToken.user);
 
   // Delete old token, then save the new one
   await existingRefreshToken.destroy();
@@ -95,7 +95,17 @@ export async function refreshAccessTokens(req, res) {
   });
 
   // Client reponse
-  sendTokensResponse(res, { accessToken, refreshToken });
+  sendTokensResponse(res, { accessToken, refreshToken, csrfToken });
+}
+
+// ============================================================
+// ===================== LOGOUT USER ==========================
+// ============================================================
+
+export async function logout(req, res) {
+  res.cookie("accessToken", Math.random().toString());
+  res.cookie("refreshToken", Math.random().toString());
+  res.status(204).end();
 }
 
 // ============================================================
@@ -110,7 +120,7 @@ function buildSignupBodySchema() {
   });
 }
 
-function buildSigninBodySchema() {
+function buildLoginBodySchema() {
   return z.object({
     email: z.string().email(),
     password: z.string()
@@ -127,7 +137,7 @@ function buildRefreshTokenSchema() {
 // =================== RESPONSE HANDLING ======================
 // ============================================================
 
-function sendTokensResponse(res, { accessToken, refreshToken }) {
+function sendTokensResponse(res, { accessToken, refreshToken, csrfToken }) {
   // Set tokens in client cookies (to prevent XSS)
   res.cookie("accessToken", accessToken.token, {
     maxAge: accessToken.expiresInMS,
@@ -149,6 +159,8 @@ function sendTokensResponse(res, { accessToken, refreshToken }) {
     accessTokenExpiresAt: accessToken.expiresAt,
 
     refreshToken: refreshToken.token,
-    refreshTokenExpiresAt: refreshToken.expiresAt
+    refreshTokenExpiresAt: refreshToken.expiresAt,
+
+    ...(csrfToken && { csrfToken })
   });
 }
