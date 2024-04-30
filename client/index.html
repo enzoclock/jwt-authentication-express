@@ -20,7 +20,7 @@
     <div>
       <section aria-labelledby="signup">
         <h2 id="signup">Create an account</h2>
-        <form action="/signup" method="POST">
+        <form id="signup-form">
           <label for="signup-username">
             User name
             <input type="text" name="username" id="signup-username" value="DarkEnzo">
@@ -73,7 +73,7 @@
     <div>
       <section aria-labelledby="login">
         <h2 id="login">Log in</h2>
-        <form action="/login" method="POST">
+        <form id="login-form">
           <label for="login-email">
             Email
             <input type="email" name="email" id="login-email" value="enzo@oclock.io">
@@ -89,7 +89,7 @@
       <section aria-labelledby="refresh">
         <h2 id="refresh">Current tokens</h2>
   
-        <form action="/refresh" method="POST">
+        <form id="refresh-form">
           <label for="access-token">
             Access Token (JWT)
             <span>Stored in cookies - Valid until: <time></time></span>
@@ -99,7 +99,7 @@
           <label for="refresh-token">
             Refresh Token (Base64)
             <span>Stored in cookies - Valid until: <time></time></span>
-            <input type="refresh-token" type="text" name="token">
+            <input type="refresh-token" type="text">
           </label>
   
           <label for="csrf-token">
@@ -114,7 +114,9 @@
 
       <section aria-labelledby="logout">
         <h2 id="logout">Log out</h2>
-        <button>Log out</button>
+        <form id="logout-form">
+          <button >Log out</button>
+        </form>
       </section>
     </div>
   </main>

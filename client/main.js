@@ -1,51 +1,80 @@
-const loginForm = document.querySelector('[action="/login"]');
-loginForm.addEventListener("submit", handleLoginForm);
+document.querySelector("#signup-form")
+  .addEventListener("submit", handleSignupForm);
 
-const refreshForm = document.querySelector('[action="/refresh');
-refreshForm.addEventListener("submit", handleRefreshForm);
+document.querySelector("#login-form")
+  .addEventListener("submit", handleLoginForm);
 
-document.getElementById("get-unauthenticated-public-stuff")
-  .addEventListener("click", () => get("/public-stuff"));
+document.querySelector("#refresh-form")
+  .addEventListener("submit", handleRefreshForm);
 
-document.getElementById("get-unauthenticated-private-stuff")
-  .addEventListener("click", () => get("/private-stuff"));
+document.querySelector("#logout-form")
+  .addEventListener("click", handleLogoutForm);
 
-document.getElementById("get-authenticated-public-stuff")
-  .addEventListener("click", () => authenticatedGet("/public-stuff"));
+document.querySelector("#get-unauthenticated-public-stuff")
+  .addEventListener("click", () => handleUnauthenticatedRequest("/public-stuff"));
 
-document.getElementById("get-authenticated-private-stuff")
-  .addEventListener("click", () => authenticatedGet("/private-stuff"));
+document.querySelector("#get-unauthenticated-private-stuff")
+  .addEventListener("click", () => handleUnauthenticatedRequest("/private-stuff"));
+
+document.querySelector("#get-authenticated-public-stuff")
+  .addEventListener("click", () => handleAuthenticatedRequest("/public-stuff"));
+
+document.querySelector("#get-authenticated-private-stuff")
+  .addEventListener("click", () => handleAuthenticatedRequest("/private-stuff"));
 
 
-// ====================
+
+// ========================================================================
+
+async function handleSignupForm(event) {
+  event.preventDefault();
+
+  const signupForm = document.querySelector("#signup-form");
+  const { username, email, password, confirm } = Object.fromEntries(new FormData(signupForm));
+  
+  await post("/signup", { username, email, password, confirm });
+}
 
 async function handleLoginForm(event) {
   event.preventDefault();
+
+  const loginForm = document.querySelector("#login-form");
   const { email, password } = Object.fromEntries(new FormData(loginForm));
+  
+  // Access and refresh tokens are automatically stored in cookies via Set-Cookie headers
   const tokens = await post("/login", { email, password });
+
+  // CSRF tokens is manually stored in localStorage
+  localStorage.setItem("csrfToken", tokens.csrfToken);
+
+  // Display tokens for demonstration
   displayTokens(tokens);
 }
 
 
 function displayTokens(tokens) {
-  // Stored automatically in cookies via Set-Cookie headers
   document.querySelector('[for="access-token"] input').value = tokens.accessToken;
   document.querySelector('[for="access-token"] time').textContent = tokens.accessTokenExpiresAt;
+  
   document.querySelector('[for="refresh-token"] input').value = tokens.refreshToken;
   document.querySelector('[for="refresh-token"] time').textContent = tokens.refreshTokenExpiresAt;
+  document.querySelector('[for="refresh-token"] input').disabled = false;
+  
   document.querySelector('[for="csrf-token"] input').value = tokens.csrfToken;
   
-  // Stored manually in localStorage
-  localStorage.setItem("csrfToken", tokens.csrfToken);
-  document.querySelector('[for="refresh-token"] input').disabled = false;
-  document.querySelector('[action="/refresh"] button').disabled = false;
+  document.querySelector("#refresh-form button").disabled = false;
 }
 
 
 async function handleRefreshForm(event) {
   event.preventDefault();
-  const { token } = Object.fromEntries(new FormData(refreshForm));
-  const tokens = await post("/refresh", { token });
+
+  // Renewed access and refresh tokens are automatically stored in cookies via reponse Set-Cookie headers
+  const tokens = await post("/refresh"); // refreshToken cookie is send automatically
+
+  // CSRF tokens is manually stored in localStorage
+  localStorage.setItem("csrfToken", tokens.csrfToken);
+  
   displayTokens(tokens);
 }
 
@@ -59,10 +88,38 @@ async function post(url, body) {
   return await httpResponse.json();
 }
 
-async function get(url) {
-  const httpResponse = await fetch(url);
-  const json = await httpResponse.json();
+async function get(url, options = {}) {
+  const httpResponse = await fetch(url, options);
+  return await httpResponse.json();
+}
+
+async function handleUnauthenticatedRequest(url) {
+  const json = await get(url);
   const jsonText = JSON.stringify(json, null, 2);
   document.querySelector("#unauthenticated-response").textContent = jsonText;
 }
 
+async function handleAuthenticatedRequest(url) {
+  const json = await get(url, {
+    credentials: "include", // Include cross-domain cookies in request
+    headers: {
+      "x-csrf-token": localStorage.getItem("csrfToken") // Include CSRF token to mitigate risks
+    }
+  });
+
+  const jsonText = JSON.stringify(json, null, 2);
+  document.querySelector("#authenticated-response").textContent = jsonText;
+}
+
+
+async function handleLogoutForm(event) {
+  event.preventDefault();
+
+  await fetch("/logout", { method: "DELETE" });
+
+  document.querySelector('[for="access-token"] input').value = "";
+  document.querySelector('[for="access-token"] time').textContent = "";
+  document.querySelector('[for="refresh-token"] input').value = "";
+  document.querySelector('[for="refresh-token"] time').textContent = "";
+  document.querySelector('[for="csrf-token"] input').value = "";
+}

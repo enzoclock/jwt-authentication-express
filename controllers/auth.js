@@ -8,21 +8,26 @@ import { User, RefreshToken } from "../models/index.js";
 // ====================== USER SIGNUP =========================
 // ============================================================
 
-export async function registerUser(req, res) {
+export async function signupUser(req, res) {
   // Body validation
   const { data, error } = await buildSignupBodySchema().safeParseAsync(req.body);
   if (error) { return res.status(400).json({ status: 400, message: error.message }); }
 
   // Create a new user
   const { username, email, password } = data;
+
+  // Check if email is always in use
+  const nbOfUsersWithSameEmail = await User.count({ where: { email }});
+  if (nbOfUsersWithSameEmail !== 0) { return res.status(409).json({ status: 409, message: "Provided email already in use" }); }
+
   await User.create({
     username,
     email,
     password: await hash(password)
   });
 
-  // Redirect user
-  res.redirect("/");
+  // Client reponse
+  res.status(201).json({ status: 201, message: "User successfully created" });
 }
 
 // ============================================================
@@ -64,9 +69,12 @@ export async function loginUser(req, res) {
 // ==================== REFRESH TOKEN =========================
 // ============================================================
 
-export async function refreshAccessTokens(req, res) {
-  // Body validation
-  const { data: { token }, error } = await buildRefreshTokenSchema().safeParseAsync(req.body);
+export async function refreshAccessToken(req, res) {
+  // Get refresh token either from cookies (browsers auth) or body (any service)
+  const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+
+  // Validation
+  const { data: token, error } = await buildRefreshTokenSchema().safeParseAsync(rawToken);
   if (error) { return res.status(400).json({ status: 400, message: error.message }); }
 
   // Find existing token and associated user
@@ -128,10 +136,9 @@ function buildLoginBodySchema() {
 }
 
 function buildRefreshTokenSchema() {
-  return z.object({
-    token: z.string()
-  });
+  return z.string().min(1);
 }
+
 
 // ============================================================
 // =================== RESPONSE HANDLING ======================
